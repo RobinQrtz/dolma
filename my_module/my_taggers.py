@@ -1,7 +1,7 @@
-from python.dolma.core.data_types import DocResult, Document
-from python.dolma.core.registry import TaggerRegistry
-from python.dolma.core.taggers import BaseTagger
-from python.dolma.taggers.gopher import get_attributes
+from dolma.core.data_types import DocResult, Document
+from dolma.core.registry import TaggerRegistry
+from dolma.core.taggers import BaseTagger
+from dolma.taggers.gopher import get_attributes
 
 REQUIRED_SWEDISH_WORDS = {
     "det",
