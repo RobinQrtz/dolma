@@ -10,6 +10,7 @@ from ..core.registry import TaggerRegistry
 from ..core.taggers import BaseTagger
 
 REQUIRED_ENGLISH_WORDS = {"the", "be", "to", "of", "and", "that", "have", "with"}
+
 SYMBOLS = {"#", "\u2026"}
 BULLET_POINTS = {"*", "-"}
 
@@ -67,7 +68,9 @@ class GopherAttributes:
                 score=self.character_count,
             )
         )
-        spans.append(Span(0, self.character_count, type="word_count", score=self.word_count))
+        spans.append(
+            Span(0, self.character_count, type="word_count", score=self.word_count)
+        )
         spans.append(
             Span(
                 0,
@@ -135,7 +138,9 @@ class GopherAttributes:
         return spans
 
 
-def get_attributes(text: str) -> GopherAttributes:
+def get_attributes(
+    text: str, REQUIRED_WORDS=REQUIRED_ENGLISH_WORDS
+) -> GopherAttributes:
     attrs = GopherAttributes([], [])
     attrs.character_count = len(text)
     if attrs.character_count == 0:
@@ -148,13 +153,13 @@ def get_attributes(text: str) -> GopherAttributes:
 
         attrs.word_count = word_count
         attrs.median_word_length = robust_median([len(word) for word in words])
-        attrs.symbol_to_word_ratio = sum(1 for word in words if any(s in word for s in SYMBOLS)) / max(
-            word_count, 1
-        )
+        attrs.symbol_to_word_ratio = sum(
+            1 for word in words if any(s in word for s in SYMBOLS)
+        ) / max(word_count, 1)
         attrs.fraction_of_words_with_alpha_character = sum(
             1 for word in words if any(c.isalpha() for c in word)
         ) / max(word_count, 1)
-        attrs.required_word_count = sum(1 for word in words if word in REQUIRED_ENGLISH_WORDS)
+        attrs.required_word_count = sum(1 for word in words if word in REQUIRED_WORDS)
 
         all_counts = all_ngram_counts(words)
 
@@ -164,12 +169,21 @@ def get_attributes(text: str) -> GopherAttributes:
                 continue
             if n in count_most_common_ngrams:
                 most_common_ngram, count = ngram_counts.most_common(1)[0]
-                value = count * sum(len(w) for w in most_common_ngram) / max(character_count, 1)
+                value = (
+                    count
+                    * sum(len(w) for w in most_common_ngram)
+                    / max(character_count, 1)
+                )
                 attrs.fraction_of_characters_in_most_common_ngram.append((n, value))
             else:
-                ng_char_count = sum(count * sum(len(w) for w in ng) for ng, count in ngram_counts.items())
+                ng_char_count = sum(
+                    count * sum(len(w) for w in ng)
+                    for ng, count in ngram_counts.items()
+                )
                 value = sum(
-                    count * sum(len(w) for w in ng) for ng, count in ngram_counts.items() if count > 1
+                    count * sum(len(w) for w in ng)
+                    for ng, count in ngram_counts.items()
+                    if count > 1
                 ) / max(ng_char_count, 1)
                 attrs.fraction_of_characters_in_duplicate_ngrams.append((n, value))
 
@@ -184,9 +198,9 @@ def get_attributes(text: str) -> GopherAttributes:
         attrs.fraction_of_lines_ending_with_ellipsis /= max(line_count, 1)
 
         line_counts = Counter(lines)
-        attrs.fraction_of_duplicate_lines = sum(count for line, count in line_counts.items() if count > 1) / max(
-            line_count, 1
-        )
+        attrs.fraction_of_duplicate_lines = sum(
+            count for line, count in line_counts.items() if count > 1
+        ) / max(line_count, 1)
         attrs.fraction_of_characters_in_duplicate_lines = sum(
             len(line) * count for line, count in line_counts.items() if count > 1
         ) / max(character_count, 1)
@@ -197,10 +211,14 @@ def get_attributes(text: str) -> GopherAttributes:
 
 
 def all_ngram_counts(words) -> List[Tuple[int, CounterType[Tuple[str, ...]]]]:
-    return [(n, Counter(list(zip(*[words[i:] for i in range(n)])))) for n in range(2, 11)]
+    return [
+        (n, Counter(list(zip(*[words[i:] for i in range(n)])))) for n in range(2, 11)
+    ]
 
 
-def all_ngram_counts_alt(words: List[str]) -> List[Tuple[int, CounterType[Tuple[str, ...]]]]:
+def all_ngram_counts_alt(
+    words: List[str],
+) -> List[Tuple[int, CounterType[Tuple[str, ...]]]]:
     """Seems like it should be faster, but isn't"""
     ngram: List[Tuple[str, ...]] = list(zip(words, words[1:]))
     all_counts: List[Tuple[int, CounterType[Tuple[str, ...]]]] = [(2, Counter(ngram))]

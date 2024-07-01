@@ -21,13 +21,21 @@ from ..core.registry import TaggerRegistry
 from ..core.taggers import BaseTagger
 from ..core.utils import split_paragraphs
 
-__all__ = ["PiiPresidioV1", "PiiRegexV1", "PiiRegexV2", "FastPiiRegex", "PiiRegexWithCountV2"]
+__all__ = [
+    "PiiPresidioV1",
+    "PiiRegexV1",
+    "PiiRegexV2",
+    "FastPiiRegex",
+    "PiiRegexWithCountV2",
+]
 
 
 class BasePiiFilter(BaseTagger):
     EMAIL = "EMAIL_ADDRESS"
     PHONE = "PHONE_NUMBER"
     IP = "IP_ADDRESS"
+
+    PERSONAL_NUMBER = "PERSONAL_NUMBER"
 
     PRESIDIO = "presidio"
     REGEX = "regex"
@@ -41,10 +49,13 @@ class BasePiiFilter(BaseTagger):
         postprocess: bool,
         window: int,
     ) -> None:
-        assert method in [
-            self.PRESIDIO,
-            self.REGEX,
-        ], f"Please provide a valid method for filtering ({self.PRESIDIO} or {self.REGEX})"
+        assert (
+            method
+            in [
+                self.PRESIDIO,
+                self.REGEX,
+            ]
+        ), f"Please provide a valid method for filtering ({self.PRESIDIO} or {self.REGEX})"
 
         # configs
         self.method = method
@@ -53,10 +64,17 @@ class BasePiiFilter(BaseTagger):
 
         # Regular expressions for different types of PII
         self.pii_type_to_regex = {
-            self.EMAIL: re.compile("[.\\s@,?!;:)(]*([^\\s@]+@[^\\s@,?!;:)(]+?)[.\\s@,?!;:)(]?[\\s\n\r]"),
-            self.PHONE: re.compile("\\s+\\(?(\\d{3})\\)?[-\\. ]*(\\d{3})[-. ]?(\\d{4})"),
+            self.EMAIL: re.compile(
+                "[.\\s@,?!;:)(]*([^\\s@]+@[^\\s@,?!;:)(]+?)[.\\s@,?!;:)(]?[\\s\n\r]"
+            ),
+            self.PHONE: re.compile(
+                "\\s+\\(?(\\d{3})\\)?[-\\. ]*(\\d{3})[-. ]?(\\d{4})"
+            ),
             self.IP: re.compile(
                 "(?:(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\\.){3}(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)"
+            ),
+            self.PERSONAL_NUMBER: re.compile(
+                r"(19|20)?[0-9]{2}(01|02|03|04|05|06|07|08|09|10|11|12)[0-9]{2}[0-9]{4}"
             ),
         }
         self.url_regex = re.compile(
@@ -68,7 +86,9 @@ class BasePiiFilter(BaseTagger):
         # presidio
         if self.method == self.PRESIDIO:
             if not PRESIDIO_AVAILABLE:
-                raise RuntimeError("Presidio is not available; please run `pip install dolma[pii]`")
+                raise RuntimeError(
+                    "Presidio is not available; please run `pip install dolma[pii]`"
+                )
             self.analyzer = AnalyzerEngine()
 
     def predict(self, doc: Document) -> DocResult:
@@ -82,7 +102,9 @@ class BasePiiFilter(BaseTagger):
             raise NotImplementedError
         # post process
         if self.postprocess:
-            new_pii_spans = self._postprocess(text=doc.text, pii_spans=pii_spans, window=self.window)
+            new_pii_spans = self._postprocess(
+                text=doc.text, pii_spans=pii_spans, window=self.window
+            )
         else:
             new_pii_spans = pii_spans
 
@@ -139,7 +161,9 @@ class BasePiiFilter(BaseTagger):
                         new_pii_spans.append(pii_span)
 
             else:
-                raise NotImplementedError(f"Unsupported PII type for Postprocess: {pii_span.type}")
+                raise NotImplementedError(
+                    f"Unsupported PII type for Postprocess: {pii_span.type}"
+                )
         return new_pii_spans
 
     def _contains_url(self, text: str) -> bool:
@@ -186,11 +210,15 @@ class FastPiiRegex(BaseTagger):
     EMAIL_KEY = "EMAIL_ADDRESS"
     PHONE_KEY = "PHONE_NUMBER"
     IP_KEY = "IP_ADDRESS"
+    PERSONAL_NUMBER_KEY = "PERSONAL_NUMBER"
 
     EMAIL_REGEX = "[.\\s@,?!;:)(]*([^\\s@]+@[^\\s@,?!;:)(]+?)[.\\s@,?!;:)(]?[\\s\n\r]"
     PHONE_REGEX = "\\s+\\(?(\\d{3})\\)?[-\\. ]*(\\d{3})[-. ]?(\\d{4})"
     IP_REGEX = "(?:(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\\.){3}(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)"
     URL_REGEX = "(?i)\b((?:https?://|www\\d{0,3}[.]|[a-z0-9.\\-]+[.][a-z]{2,4}/)(?:[^\\s()<>]+|\\(([^\\s()<>]+|(\\([^\\s()<>]+\\)))*\\))+(?:\\(([^\\s()<>]+|(\\([^\\s()<>]+\\)))*\\)|[^\\s`!()\\[\\]{};:'\".,<>?«»“”‘’]))"  # noqa: E501
+    PERSONAL_NUMBER_REGEX = (
+        r"(19|20)?[0-9]{2}(01|02|03|04|05|06|07|08|09|10|11|12)[0-9]{2}[0-9]{4}"
+    )
 
     def __init__(
         self,
@@ -198,11 +226,13 @@ class FastPiiRegex(BaseTagger):
         phone_regex: str = PHONE_REGEX,
         ip_regex: str = IP_REGEX,
         url_regex: str = URL_REGEX,
+        personal_number_regex: str = PERSONAL_NUMBER_REGEX,
     ) -> None:
         self.email_regex = re.compile(email_regex)
         self.phone_regex = re.compile(phone_regex)
         self.ip_regex = re.compile(ip_regex)
         self.url_regex = re.compile(url_regex)
+        self.personal_number_regex = re.compile(personal_number_regex)
 
         self.pre_ip_regex = re.compile(r"\.[^\s]")
         self.pre_phone_regex = re.compile(r"\d")
@@ -221,7 +251,13 @@ class FastPiiRegex(BaseTagger):
                 continue
 
             start, end = match.span()
-            spans.append(Span(start=start + slice.start, end=end + slice.start, type=self.EMAIL_KEY))
+            spans.append(
+                Span(
+                    start=start + slice.start,
+                    end=end + slice.start,
+                    type=self.EMAIL_KEY,
+                )
+            )
 
         return spans
 
@@ -232,7 +268,13 @@ class FastPiiRegex(BaseTagger):
         spans = []
         for match in self.phone_regex.finditer(slice.text):
             start, end = match.span()
-            spans.append(Span(start=start + slice.start, end=end + slice.start, type=self.PHONE_KEY))
+            spans.append(
+                Span(
+                    start=start + slice.start,
+                    end=end + slice.start,
+                    type=self.PHONE_KEY,
+                )
+            )
 
         return spans
 
@@ -245,12 +287,27 @@ class FastPiiRegex(BaseTagger):
             if self._contains_url(match.group(0)):
                 continue
             start, end = match.span()
-            spans.append(Span(start=start + slice.start, end=end + slice.start, type=self.IP_KEY))
+            spans.append(
+                Span(start=start + slice.start, end=end + slice.start, type=self.IP_KEY)
+            )
 
         return spans
 
     def _contains_url(self, text: str) -> bool:
         return self.url_regex.search(text) is not None
+
+    def _predict_personal_number(self, slice: TextSlice) -> List[Span]:
+        spans = []
+        for match in self.personal_number_regex.finditer(slice.text):
+            start, end = match.span()
+            spans.append(
+                Span(
+                    start=start + slice.start,
+                    end=end + slice.start,
+                    type=self.PERSONAL_NUMBER_KEY,
+                )
+            )
+        return spans
 
     def predict(self, doc: Document) -> DocResult:
         paragraphs = split_paragraphs(doc.text)
@@ -264,6 +321,7 @@ class FastPiiRegex(BaseTagger):
             spans.extend(self._predict_email(paragraph))
             spans.extend(self._predict_phone(paragraph))
             spans.extend(self._predict_ip(paragraph))
+            spans.extend(self._predict_personal_number(paragraph))
 
         # doc level score is the count of spans matching any of the PII types
         score = sum(1.0 for s in spans if s.type != "doc")
@@ -288,5 +346,7 @@ class PiiRegexWithCountV2(BasePiiFilter):
     def predict(self, doc: Document) -> DocResult:
         doc_result = super().predict(doc=doc)
         count = sum(1 for s in doc_result.spans if s.type != "doc")
-        doc_result.spans.append(Span(start=0, end=len(doc.text), type="doc_count", score=count))
+        doc_result.spans.append(
+            Span(start=0, end=len(doc.text), type="doc_count", score=count)
+        )
         return doc_result
