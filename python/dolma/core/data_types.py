@@ -42,7 +42,9 @@ class OutputSpec(Struct):
 class Document:
     __slots__ = "source", "version", "id", "text"
 
-    def __init__(self, source: str, id: str, text: str, version: Optional[str] = None) -> None:
+    def __init__(
+        self, source: str, id: str, text: str, version: Optional[str] = None
+    ) -> None:
         self.source = source
         self.version = version
         self.id = id
@@ -50,27 +52,42 @@ class Document:
 
     @classmethod
     def from_spec(cls, spec: InputSpec) -> "Document":
-        return Document(source=spec.source, version=spec.version, id=spec.id, text=spec.text)
+        return Document(
+            source=spec.source, version=spec.version, id=spec.id, text=spec.text
+        )
 
     def to_spec(self) -> InputSpec:
-        return InputSpec(source=self.source, version=self.version, id=self.id, text=self.text)
+        return InputSpec(
+            source=self.source, version=self.version, id=self.id, text=self.text
+        )
 
     @classmethod
     def from_json(cls, d: Dict[str, Any]) -> "Document":
-        return Document(source=d["source"], version=d["version"], id=d["id"], text=d["text"])
+        return Document(
+            source=d["source"], version=d["version"], id=d["id"], text=d["text"]
+        )
 
     def to_json(self) -> Dict[str, Any]:
-        return {"source": self.source, "version": self.version, "id": self.id, "text": self.text}
+        return {
+            "source": self.source,
+            "version": self.version,
+            "id": self.id,
+            "text": self.text,
+        }
 
     def __str__(self) -> str:
-        attributes_string = ",".join([f"{k}:{repr(v)}" for k, v in self.to_json().items()])
+        attributes_string = ",".join(
+            [f"{k}:{repr(v)}" for k, v in self.to_json().items()]
+        )
         return f"{self.__class__.__name__}({attributes_string})"
 
 
 class DocumentWithMetadata(Document):
     __slots__ = ("metadata",)
 
-    def __init__(self, *args, metadata: Optional[Dict[str, Any]] = None, **kwargs) -> None:
+    def __init__(
+        self, *args, metadata: Optional[Dict[str, Any]] = None, **kwargs
+    ) -> None:
         super().__init__(*args, **kwargs)
         self.metadata = metadata or {}
 
@@ -119,13 +136,18 @@ class DocumentWithMetadata(Document):
 
 class DocumentWithMetadataAndAttributes(DocumentWithMetadata):
     def __init__(
-        self, *args, attributes: Optional[Dict[str, List[Tuple[int, int, float]]]] = None, **kwargs
+        self,
+        *args,
+        attributes: Optional[Dict[str, List[Tuple[int, int, float]]]] = None,
+        **kwargs,
     ) -> None:
         super().__init__(*args, **kwargs)
         self.attributes = attributes or {}
 
     @classmethod
-    def from_spec(cls, spec: InputSpecWithMetadataAndAttributes) -> "DocumentWithMetadataAndAttributes":
+    def from_spec(
+        cls, spec: InputSpecWithMetadataAndAttributes
+    ) -> "DocumentWithMetadataAndAttributes":
         return DocumentWithMetadataAndAttributes(
             source=spec.source,
             version=spec.version,
@@ -167,7 +189,10 @@ class DocumentWithMetadataAndAttributes(DocumentWithMetadata):
         )
 
     def __str__(self) -> str:
-        return super().__str__().rstrip(")") + f",attributes={'...' if self.attributes else 'none'})"
+        return (
+            super().__str__().rstrip(")")
+            + f",attributes={'...' if self.attributes else 'none'})"
+        )
 
 
 class Span:
@@ -196,7 +221,9 @@ class Span:
         return doc.text[self.start : self.end]
 
     @classmethod
-    def from_spec(cls, attribute_name: str, attribute_value: TaggerOutputValueType) -> "Span":
+    def from_spec(
+        cls, attribute_name: str, attribute_value: TaggerOutputValueType
+    ) -> "Span":
         if "__" in attribute_name:
             # bff tagger has different name
             exp_name, tgr_name, attr_type = attribute_name.split("__", 2)
@@ -214,7 +241,9 @@ class Span:
         )
 
     def to_spec(self) -> Tuple[str, TaggerOutputValueType]:
-        assert self.experiment is not None, "Experiment name must be set to convert to spec"
+        assert (
+            self.experiment is not None
+        ), "Experiment name must be set to convert to spec"
         assert self.tagger is not None, "Tagger name must be set to convert to spec"
         return (
             f"{self.experiment}__{self.tagger}__{self.type}",
@@ -226,10 +255,17 @@ class Span:
 
     @classmethod
     def from_json(cls, di: Dict) -> "Span":
-        return Span(start=di["start"], end=di["end"], type=di["type"], score=di["score"])
+        return Span(
+            start=di["start"], end=di["end"], type=di["type"], score=di["score"]
+        )
 
     def to_json(self, text: Optional[str] = None, window: int = 0) -> dict:
-        span_repr = {"start": self.start, "end": self.end, "type": self.type, "score": self.score}
+        span_repr = {
+            "start": self.start,
+            "end": self.end,
+            "type": self.type,
+            "score": self.score,
+        }
         if text is not None:
             span_repr["mention"] = self.mention(text=text, window=window)
         return span_repr
@@ -249,6 +285,13 @@ class Span:
             and self.end == other.end
             and self.type == other.type
             and self.score == other.score
+        )
+
+    def overlap(self, other: Any) -> bool:
+        if not isinstance(other, self.__class__):
+            return False
+        return (self.start < other.start and self.end >= other.start) or (
+            self.start >= other.start and self.start <= other.end
         )
 
 
@@ -281,7 +324,9 @@ class DocResult:
             attr_name, attr_value = span.to_spec()
             attributes.setdefault(attr_name, []).append(attr_value)
 
-        return doc_spec, OutputSpec(source=self.doc.source, id=self.doc.id, attributes=attributes)
+        return doc_spec, OutputSpec(
+            source=self.doc.source, id=self.doc.id, attributes=attributes
+        )
 
     @classmethod
     def from_json(cls, d: Dict[str, Any]) -> "DocResult":
@@ -291,7 +336,11 @@ class DocResult:
         )
 
     def to_json(self, with_doc: bool = False, window: int = 0) -> Dict[str, Any]:
-        d: Dict[str, Any] = {"spans": [span.to_json(text=self.doc.text, window=window) for span in self.spans]}
+        d: Dict[str, Any] = {
+            "spans": [
+                span.to_json(text=self.doc.text, window=window) for span in self.spans
+            ]
+        }
         if with_doc:
             d["doc"] = self.doc.to_json()
         return d
