@@ -74,7 +74,7 @@ class BasePiiFilter(BaseTagger):
                 "(?:(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\\.){3}(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)"
             ),
             self.PERSONAL_NUMBER: re.compile(
-                r"(19|20)?[0-9]{2}(01|02|03|04|05|06|07|08|09|10|11|12)[0-9]{2}[0-9]{4}"
+                r"(19|20)?[0-9]{2}(01|02|03|04|05|06|07|08|09|10|11|12)[0-9]{2}-?[0-9]{4}"
             ),
         }
         self.url_regex = re.compile(
@@ -159,6 +159,13 @@ class BasePiiFilter(BaseTagger):
                         pass
                     else:
                         new_pii_spans.append(pii_span)
+            elif pii_span.type == self.PERSONAL_NUMBER:
+                modifier = 0
+                for i in range(len(new_pii_spans)):
+                    if pii_span.overlap(new_pii_spans[i + modifier]):
+                        new_pii_spans.pop(i + modifier)
+                        modifier -= 1
+                new_pii_spans.append(pii_span)
 
             else:
                 raise NotImplementedError(
@@ -217,7 +224,7 @@ class FastPiiRegex(BaseTagger):
     IP_REGEX = "(?:(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\\.){3}(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)"
     URL_REGEX = "(?i)\b((?:https?://|www\\d{0,3}[.]|[a-z0-9.\\-]+[.][a-z]{2,4}/)(?:[^\\s()<>]+|\\(([^\\s()<>]+|(\\([^\\s()<>]+\\)))*\\))+(?:\\(([^\\s()<>]+|(\\([^\\s()<>]+\\)))*\\)|[^\\s`!()\\[\\]{};:'\".,<>?«»“”‘’]))"  # noqa: E501
     PERSONAL_NUMBER_REGEX = (
-        r"(19|20)?[0-9]{2}(01|02|03|04|05|06|07|08|09|10|11|12)[0-9]{2}[0-9]{4}"
+        r"(19|20)?[0-9]{2}(01|02|03|04|05|06|07|08|09|10|11|12)[0-9]{2}-?[0-9]{4}"
     )
 
     def __init__(
@@ -297,6 +304,8 @@ class FastPiiRegex(BaseTagger):
         return self.url_regex.search(text) is not None
 
     def _predict_personal_number(self, slice: TextSlice) -> List[Span]:
+        if not self.pre_phone_regex.search(slice.text):
+            return []
         spans = []
         for match in self.personal_number_regex.finditer(slice.text):
             start, end = match.span()

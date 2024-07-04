@@ -4,7 +4,7 @@
   - [ ] Swedish
   - [ ] Danish
   - [ ] Norwegian
-- [ ] PII tagger for
+- [x] PII tagger for
   - [x] personal numbers
   - ~[ ] usernames~ <- usernames differ for different platforms
 - [x] Gopher for
@@ -12,8 +12,9 @@
   - [x] Danish
   - [x] Norwegian
 - [ ] create config-files for
+  - [ ] dedupe doc
   - [ ] dedupe url
-  - [ ] dedupe string
+  - [ ] dedupe paragraph
   - [ ] taggers
   - [ ] mixer
     - [ ] replace duplicate spans with empty strings
@@ -23,4 +24,5 @@
 - [ ] length filter should take duplicate spans into account
 - [ ] or just follow dolma 1.6 and 1.7
   - [ ] what do dolma 1.6 and 1.7 do?
+
   
