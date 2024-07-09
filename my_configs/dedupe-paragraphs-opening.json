@@ -1,0 +1,23 @@
+{
+  "documents": [
+    "my_data/documents/wiki_opening/*gz"
+  ],
+  "work_dir": {
+    "input": "work/par/input",
+    "output": "work/par/output"
+  },
+  "dedupe": {
+    "name": "dedupe_paragraphs",
+    "paragraphs": {
+      "attribute_name": "bff_duplicate_paragraph_spans"
+    }
+  },
+  "bloom_filter": {
+    "file": "work/para_bloom_filter-opening.bin",
+    "size_in_bytes": 0,
+    "read_only": false,
+    "estimated_doc_count": 3000000,
+    "desired_false_positive_rate": 0.001
+  },
+  "processes": 30
+}

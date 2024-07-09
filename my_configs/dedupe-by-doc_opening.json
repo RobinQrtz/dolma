@@ -1,0 +1,24 @@
+{
+  "documents": [
+    "my_data/documents/wiki_opening/*gz"
+  ],
+  "work_dir": {
+    "input": "work/doc/input",
+    "output": "work/doc/output"
+  },
+  "dedupe": {
+    "name": "dedupe_by_doc",
+    "documents": {
+      "attribute_name": "bff_duplicate_doc",
+      "key": "$.text"
+    }
+  },
+  "bloom_filter": {
+    "file": "work/doc_bloom_filter-opening.bin",
+    "size_in_bytes": 0,
+    "read_only": false,
+    "estimated_doc_count": 3000000,
+    "desired_false_positive_rate": 0.001
+  },
+  "processes": 30
+}
