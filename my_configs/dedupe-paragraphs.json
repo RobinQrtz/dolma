@@ -1,0 +1,24 @@
+{
+  "documents": [
+    "my_data/documents/wikia/*gz",
+    "my_data/documents/wikipedia/*gz"
+  ],
+  "work_dir": {
+    "input": "work/url/input",
+    "output": "work/url/output"
+  },
+  "dedupe": {
+    "name": "dedupe_paragraphs",
+    "paragraphs": {
+      "attribute_name": "bff_duplicate_paragraph_spans"
+    }
+  },
+  "bloom_filter": {
+    "file": "work/para_bloom_filter.bin",
+    "size_in_bytes": 0,
+    "read_only": false,
+    "estimated_doc_count": 3000000,
+    "desired_false_positive_rate": 0.001
+  },
+  "processes": 20
+}

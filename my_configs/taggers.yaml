@@ -1,0 +1,19 @@
+documents:
+  #- my_data/documents/wikia/*gz
+  #- my_data/documents/wikipedia/*gz
+  # - my_data/mixed0/documents/mixed-*gz
+  - my_data/documents/wiki_opening/*gz
+
+experiment:
+  my_tags
+
+tagger_modules:
+  - my_module/my_taggers.py
+
+taggers:
+  - pii_regex_v2
+  - gopher_swedish
+  - uniseg_length_paragraphs_with_doc_length_v1
+
+processes:
+  30

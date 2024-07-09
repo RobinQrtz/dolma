@@ -1,0 +1,117 @@
+streams:
+
+  - name: mixed-again
+  
+    documents:
+      #- my_data/documents/wikia/*gz
+      #- my_data/documents/wikipedia/*gz
+      - my_data/mixed0/documents/mixed-*gz
+  
+    attributes:
+      - my_tags
+        #- dedupe_by_url
+        #- dedupe_by_doc
+        #- dedupe_paragraphs
+  
+    output:
+      path: my_data/mixed0/documents/
+      max_size_in_bytes: 1_000_000 # 4_294_967_296
+      min_text_length: 1
+        #discard_fields:
+        #- attributes
+    filter:
+      include: []
+      exclude: 
+        # - "$.attributes[?(@.my_tags__uniseg_length_paragraphs_with_doc_length_v1__document[0][2] < 50)]"
+        #- "$.attributes[?(@.bff_duplicate_url && @.bff_duplicate_url[0] &&
+        #  @.bff_duplicate_url[0][2] == 1)]"
+        #- "$.attributes[?(@.bff_duplicate_doc && @.bff_duplicate_doc[0] &&
+        #  @.bff_duplicate_doc[0][2] == 1)]"
+        - "$.attributes[?(@.my_tags__gopher_swedish__word_count && @.my_tags__gopher_swedish__word_count[0]
+          && @.my_tags__gopher_swedish__word_count[0][2] < 50)]"
+        - "$.attributes[?(@.my_tags__gopher_swedish__word_count && @.my_tags__gopher_swedish__word_count[0]
+        && @.my_tags__gopher_swedish__word_count[0][2] > 100000)]"
+        - "$.attributes[?(@.my_tags__gopher_swedish__median_word_length && @.my_tags__gopher_swedish__median_word_length[0]
+          && @.my_tags__gopher_swedish__median_word_length[0][2] < 3)]"
+        - "$.attributes[?(@.my_tags__gopher_swedish__median_word_length && @.my_tags__gopher_swedish__median_word_length[0]
+        && @.my_tags__gopher_swedish__median_word_length[0][2] > 10)]"
+        - "$.attributes[?(@.my_tags__gopher_swedish__symbol_to_word_ratio && @.my_tags__gopher_swedish__symbol_to_word_ratio[0]
+          && @.my_tags__gopher_swedish__symbol_to_word_ratio[0][2] > 0.1)]"
+        - "$.attributes[?(@.my_tags__gopher_swedish__fraction_of_words_with_alpha_character
+        && @.my_tags__gopher_swedish__fraction_of_words_with_alpha_character[0] && @.my_tags__gopher_swedish__fraction_of_words_with_alpha_character[0][2]
+          < 0.8)]"
+        - "$.attributes[?(@.my_tags__gopher_swedish__required_word_count && @.my_tags__gopher_swedish__required_word_count[0]
+        && @.my_tags__gopher_swedish__required_word_count[0][2] < 2)]"
+        - "$.attributes[?(@.my_tags__gopher_swedish__fraction_of_lines_starting_with_bullet_point
+          && @.my_tags__gopher_swedish__fraction_of_lines_starting_with_bullet_point[0]
+        && @.my_tags__gopher_swedish__fraction_of_lines_starting_with_bullet_point[0][2]
+          > 0.9)]"
+        - "$.attributes[?(@.my_tags__gopher_swedish__fraction_of_lines_ending_with_ellipsis
+        && @.my_tags__gopher_swedish__fraction_of_lines_ending_with_ellipsis[0] && @.my_tags__gopher_swedish__fraction_of_lines_ending_with_ellipsis[0][2]
+          > 0.3)]"
+        # - "$.attributes[?(@.my_tags__gopher_swedish__fraction_of_duplicate_lines && @.my_tags__gopher_swedish__fraction_of_duplicate_lines[0]
+        # && @.my_tags__gopher_swedish__fraction_of_duplicate_lines[0][2] > 0.3)]"
+        - "$.attributes[?(@.my_tags__gopher_swedish__fraction_of_characters_in_duplicate_lines
+          && @.my_tags__gopher_swedish__fraction_of_characters_in_duplicate_lines[0] &&
+        @.my_tags__gopher_swedish__fraction_of_characters_in_duplicate_lines[0][2] >
+          0.3)]"
+        - "$.attributes[?(@.my_tags__gopher_swedish__fraction_of_characters_in_most_common_2grams
+        && @.my_tags__gopher_swedish__fraction_of_characters_in_most_common_2grams[0]
+          && @.my_tags__gopher_swedish__fraction_of_characters_in_most_common_2grams[0][2]
+        > 0.2)]"
+        - "$.attributes[?(@.my_tags__gopher_swedish__fraction_of_characters_in_most_common_3grams
+          && @.my_tags__gopher_swedish__fraction_of_characters_in_most_common_3grams[0]
+        && @.my_tags__gopher_swedish__fraction_of_characters_in_most_common_3grams[0][2]
+          > 0.18)]"
+        - "$.attributes[?(@.my_tags__gopher_swedish__fraction_of_characters_in_most_common_4grams
+        && @.my_tags__gopher_swedish__fraction_of_characters_in_most_common_4grams[0]
+          && @.my_tags__gopher_swedish__fraction_of_characters_in_most_common_4grams[0][2]
+        > 0.16)]"
+        - "$.attributes[?(@.my_tags__gopher_swedish__fraction_of_characters_in_duplicate_5grams
+          && @.my_tags__gopher_swedish__fraction_of_characters_in_duplicate_5grams[0]
+        && @.my_tags__gopher_swedish__fraction_of_characters_in_duplicate_5grams[0][2]
+          > 0.15)]"
+        - "$.attributes[?(@.my_tags__gopher_swedish__fraction_of_characters_in_duplicate_6grams
+        && @.my_tags__gopher_swedish__fraction_of_characters_in_duplicate_6grams[0]
+          && @.my_tags__gopher_swedish__fraction_of_characters_in_duplicate_6grams[0][2]
+        > 0.14)]"
+        - "$.attributes[?(@.my_tags__gopher_swedish__fraction_of_characters_in_duplicate_7grams
+          && @.my_tags__gopher_swedish__fraction_of_characters_in_duplicate_7grams[0]
+        && @.my_tags__gopher_swedish__fraction_of_characters_in_duplicate_7grams[0][2]
+          > 0.13)]"
+        - "$.attributes[?(@.my_tags__gopher_swedish__fraction_of_characters_in_duplicate_8grams
+        && @.my_tags__gopher_swedish__fraction_of_characters_in_duplicate_8grams[0]
+          && @.my_tags__gopher_swedish__fraction_of_characters_in_duplicate_8grams[0][2]
+        > 0.12)]"
+        - "$.attributes[?(@.my_tags__gopher_swedish__fraction_of_characters_in_duplicate_9grams
+          && @.my_tags__gopher_swedish__fraction_of_characters_in_duplicate_9grams[0]
+        && @.my_tags__gopher_swedish__fraction_of_characters_in_duplicate_9grams[0][2]
+          > 0.11)]"
+        - "$.attributes[?(@.my_tags__gopher_swedish__fraction_of_characters_in_duplicate_10grams
+        && @.my_tags__gopher_swedish__fraction_of_characters_in_duplicate_10grams[0]
+          && @.my_tags__gopher_swedish__fraction_of_characters_in_duplicate_10grams[0][2]
+        > 0.10)]"
+    
+        #span_replacement:
+        #- span: "$.attributes.bff_duplicate_paragraph_spans"
+        #  min_score: 0.5
+        #  replacement: ''
+    #- span: "$.attributes.my_tags__pii_regex_v2__EMAIL_ADDRESS"
+    #  min_score: 0.5
+    #  replacement: " |||EMAIL_ADDRESS||| "
+    #- span: "$.attributes.my_tags__pii_regex_v2__PHONE_NUMBER"
+    #  min_score: 0.5
+    #  replacement: " |||PHONE_NUMBER||| "
+    #- span: "$.attributes.my_tags__pii_regex_v2__IP_ADDRESS"
+    #  min_score: 0.5
+    #  replacement: " |||IP_ADDRESS||| "
+    #- span: "$.attributes.my_tags__pii_regex_v2__PERSONAL_NUMBER"
+    #  min_score: 0.5
+    #  replacement: " |||PERSONAL_NUMBER||| "
+  
+work_dir:
+  input: "/tmp/mymixer/input"
+  output: "/tmp/myxier/output"
+
+processes: 20
+  
